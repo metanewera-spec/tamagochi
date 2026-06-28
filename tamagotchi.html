@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#d4a820"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Тамагочи"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon.svg"/>
+  <title>Тамагочи</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    body{font-family:'Press Start 2P',monospace;}
+
+    .wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:12px;}
+
+    .shell{
+      background:linear-gradient(145deg,#e8c84a,#d4a820,#c49010);
+      border-radius:50% 50% 45% 45% / 55% 55% 45% 45%;
+      width:min(280px,85vw);
+      height:min(340px,92vw);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      position:relative;
+      box-shadow:0 10px 0 #a07010, 0 16px 32px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.3);
+      border:3px solid #906000;
+      gap:0;
+    }
+
+    .keychain{
+      width:14px;height:24px;
+      border:3px solid #906000;border-radius:7px 7px 0 0;border-bottom:none;
+      position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+    }
+
+    .screen-bezel{
+      background:#222;border-radius:14px;padding:6px;
+      border:3px solid #111;
+      box-shadow:inset 0 2px 10px rgba(0,0,0,0.9);
+      width:min(178px,53vw);height:min(158px,47vw);
+      flex-shrink:0;
+    }
+    .screen{
+      background:#9db668;border-radius:9px;
+      width:100%;height:100%;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      position:relative;overflow:hidden;
+    }
+    .icons-row{
+      position:absolute;top:5px;left:0;right:0;
+      display:flex;gap:5px;justify-content:center;
+    }
+    .icon-px{font-size:7px;opacity:0.25;color:#2a3a1a;transition:opacity 0.1s;}
+    .icon-px.on{opacity:1;}
+    .pet-area{display:flex;align-items:center;justify-content:center;flex:1;width:100%;position:relative;}
+    canvas{image-rendering:pixelated;image-rendering:crisp-edges;}
+    .msg-area{
+      position:absolute;bottom:5px;left:0;right:0;
+      font-size:5px;color:#2a3a1a;text-align:center;min-height:10px;
+    }
+
+    .stats{
+      display:flex;gap:6px;margin-top:6px;
+      font-size:5px;color:#7a5800;
+      width:min(166px,50vw);
+    }
+    .stat{flex:1;text-align:center;}
+    .stat-bar{height:5px;background:#c49010;border:1px solid #906000;border-radius:2px;margin-top:2px;overflow:hidden;}
+    .stat-fill{height:100%;background:#3a2a00;transition:width 0.4s;}
+
+    .age-display{font-size:5px;color:#7a5800;margin-top:3px;width:min(166px,50vw);text-align:right;}
+
+    .buttons{display:flex;gap:min(20px,6vw);margin-top:min(14px,4vw);}
+    .btn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .btn{
+      width:min(40px,12vw);height:min(40px,12vw);border-radius:50%;
+      background:linear-gradient(145deg,#cc3333,#991111);
+      border:2px solid #770000;
+      box-shadow:0 4px 0 #550000,0 6px 10px rgba(0,0,0,0.4);
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      font-size:min(8px,2.5vw);color:white;
+      transition:transform 0.08s,box-shadow 0.08s;
+      user-select:none;
+    }
+    .btn:active,.btn.pressed{transform:translateY(3px);box-shadow:0 1px 0 #550000;}
+    .btn-label{font-size:min(5px,1.6vw);color:#7a5800;text-align:center;}
+
+    .notify{
+      position:fixed;top:16px;left:50%;transform:translateX(-50%);
+      background:#1a1a2e;color:#e8c84a;
+      font-size:8px;padding:8px 16px;border-radius:8px;
+      border:1px solid #d4a820;
+      opacity:0;transition:opacity 0.3s;
+      pointer-events:none;z-index:100;white-space:nowrap;
+    }
+    .notify.show{opacity:1;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="shell">
+    <div class="keychain"></div>
+    <div class="screen-bezel">
+      <div class="screen" id="screen">
+        <div class="icons-row" id="icons-row">
+          <span class="icon-px" id="icon-food">&#9830;</span>
+          <span class="icon-px" id="icon-game">&#9670;</span>
+          <span class="icon-px" id="icon-clean">&#9632;</span>
+          <span class="icon-px" id="icon-med">&#9650;</span>
+          <span class="icon-px" id="icon-sleep">&#9660;</span>
+        </div>
+        <div class="pet-area">
+          <canvas id="petCanvas" width="64" height="64" style="width:min(88px,26vw);height:min(88px,26vw);"></canvas>
+        </div>
+        <div class="msg-area" id="msg"></div>
+      </div>
+    </div>
+    <div class="age-display" id="age-disp">AGE: 0</div>
+    <div class="stats">
+      <div class="stat"><div>HGR</div><div class="stat-bar"><div class="stat-fill" id="bar-hunger" style="width:100%"></div></div></div>
+      <div class="stat"><div>HPI</div><div class="stat-bar"><div class="stat-fill" id="bar-happy" style="width:100%"></div></div></div>
+      <div class="stat"><div>HP</div><div class="stat-bar"><div class="stat-fill" id="bar-health" style="width:100%"></div></div></div>
+    </div>
+    <div class="buttons">
+      <div class="btn-wrap"><div class="btn" id="btnA">A</div><div class="btn-label">SELECT</div></div>
+      <div class="btn-wrap"><div class="btn" id="btnB">B</div><div class="btn-label">OK</div></div>
+      <div class="btn-wrap"><div class="btn" id="btnC">C</div><div class="btn-label">CANCEL</div></div>
+    </div>
+  </div>
+</div>
+<div class="notify" id="notify"></div>
+
+<script>
+// ── Audio ──
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let actx=null;
+function getAC(){if(!actx)actx=new AudioCtx();if(actx.state==='suspended')actx.resume();return actx;}
+function beep(f,d,type='square'){try{const a=getAC(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.12,a.currentTime);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+d);o.start();o.stop(a.currentTime+d);}catch(e){}}
+function seq(notes){notes.forEach(([f,d,t],i)=>setTimeout(()=>beep(f,d,t||'square'),i*120));}
+const sndFeed=()=>seq([[523,.1],[659,.1],[784,.15]]);
+const sndGame=()=>seq([[784,.08],[880,.08],[988,.08],[1047,.15]]);
+const sndSick=()=>seq([[300,.2,'sawtooth'],[250,.3,'sawtooth']]);
+const sndDead=()=>seq([[440,.15],[330,.15],[220,.15],[110,.4,'sawtooth']]);
+const sndHappy=()=>seq([[523,.08],[659,.08],[784,.08],[1047,.12]]);
+const sndAlert=()=>seq([[880,.1],[880,.1]]);
+const sndClick=()=>beep(440,.05);
+
+// ── Sprites 8×8 ──
+const C=1,_=0;
+const SP={
+  egg:[[_,_,_,C,C,C,_,_],[_,_,C,C,C,C,C,_],[_,C,C,C,C,C,C,C],[_,C,C,C,C,C,C,C],[_,C,C,C,C,C,C,C],[_,C,C,C,C,C,C,C],[_,_,C,C,C,C,C,_],[_,_,_,C,C,C,_,_]],
+  baby:[[_,_,C,C,C,C,_,_],[_,C,C,C,C,C,C,_],[_,C,C,_,C,_,C,_],[_,C,C,C,C,C,C,_],[_,C,C,C,C,C,C,_],[_,_,C,C,C,C,_,_],[_,C,_,_,_,_,C,_],[_,C,_,_,_,_,C,_]],
+  baby2:[[_,_,C,C,C,C,_,_],[_,C,C,C,C,C,C,_],[_,C,_,C,C,_,C,_],[_,C,C,C,C,C,C,_],[_,C,C,C,C,C,C,_],[_,_,C,C,C,C,_,_],[_,_,C,_,_,C,_,_],[_,C,_,_,_,_,C,_]],
+  adult:[[_,C,C,C,C,C,C,_],[C,C,C,C,C,C,C,C],[C,C,_,C,C,_,C,C],[C,C,C,C,C,C,C,C],[C,C,C,C,C,C,C,C],[_,C,C,C,C,C,C,_],[C,_,C,_,_,C,_,C],[C,_,C,_,_,C,_,C]],
+  adult2:[[_,C,C,C,C,C,C,_],[C,C,C,C,C,C,C,C],[C,C,_,C,C,_,C,C],[C,C,C,C,C,C,C,C],[C,C,C,C,C,C,C,C],[_,C,C,C,C,C,C,_],[_,C,C,_,_,C,C,_],[C,C,_,_,_,_,C,C]],
+  sleep:[[_,_,C,C,C,C,_,_],[_,C,C,C,C,C,C,_],[_,C,_,_,_,_,C,_],[_,C,C,C,C,C,C,_],[_,_,C,C,C,C,_,_],[_,_,_,_,_,_,_,_],[_,_,C,_,C,_,_,_],[_,C,_,C,_,_,_,_]],
+  sick:[[_,_,C,C,C,C,_,_],[_,C,C,C,C,C,C,_],[_,C,C,_,_,C,C,_],[_,C,_,C,C,_,C,_],[_,C,C,_,_,C,C,_],[_,_,C,C,C,C,_,_],[_,C,_,_,_,_,C,_],[_,C,_,_,_,_,C,_]],
+  dead:[[C,_,_,_,_,_,_,C],[_,C,_,_,_,_,C,_],[_,_,C,_,_,C,_,_],[_,_,_,C,C,_,_,_],[_,_,_,C,C,_,_,_],[_,_,C,_,_,C,_,_],[_,C,_,_,_,_,C,_],[C,_,_,_,_,_,_,C]],
+  eat:[[_,_,C,C,C,C,_,_],[_,C,C,C,C,C,C,_],[_,C,C,_,C,_,C,_],[_,C,C,C,C,C,C,_],[_,C,C,_,_,C,C,_],[_,_,C,C,C,C,_,_],[_,_,_,C,C,_,_,_],[_,_,C,C,C,C,_,_]],
+  happy:[[_,_,C,C,C,C,_,_],[_,C,C,C,C,C,C,_],[_,C,_,C,C,_,C,_],[_,C,C,C,C,C,C,_],[_,C,_,C,C,_,C,_],[_,_,C,C,C,C,_,_],[C,_,C,_,_,C,_,C],[_,C,_,_,_,_,C,_]],
+  poop:[[_,_,_,C,C,_,_,_],[_,_,C,C,C,C,_,_],[_,_,C,C,C,C,_,_],[_,C,C,C,C,C,C,_],[_,C,C,C,C,C,C,_],[C,C,C,C,C,C,C,C],[C,C,C,C,C,C,C,C],[_,_,_,_,_,_,_,_]],
+};
+const DARK='#2a3a1a',LIGHT='#9db668',SC=8;
+const cv=document.getElementById('petCanvas');
+const cx=cv.getContext('2d');
+cx.imageSmoothingEnabled=false;
+
+function drawSp(name,ox=0,oy=0){
+  const sp=SP[name]||SP.baby;
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++){
+    cx.fillStyle=sp[y][x]?DARK:LIGHT;
+    cx.fillRect((x+ox)*SC,(y+oy)*SC,SC,SC);
+  }
+}
+function render(){
+  cx.fillStyle=LIGHT;cx.fillRect(0,0,64,64);
+  if(gs.dead){drawSp('dead');return;}
+  if(gs.sleeping){drawSp('sleep');return;}
+  const base=gs.phase==='egg'?'egg':gs.phase==='baby'?(animAlt?'baby':'baby2'):(animAlt?'adult':'adult2');
+  if(gs.sick){drawSp('sick');}
+  else drawSp(base);
+  if(gs.poop){drawSp('poop',0,0);}// overlay — shift poop to side
+  if(gs.poop){cx.fillStyle=LIGHT;cx.fillRect(0,0,64,64);drawSp(gs.sick?'sick':base,0,0);drawSp('poop',4,0);}
+}
+
+// ── Game State ──
+const DEFAULT={phase:'egg',hunger:100,happy:100,health:100,age:0,sick:false,poop:false,sleeping:false,dead:false,menu:0,inMenu:false,tick:0,savedAt:null};
+let gs=Object.assign({},DEFAULT);
+let animAlt=false;
+const MENUS=['food','game','clean','med','sleep'];
+const ICONS=['icon-food','icon-game','icon-clean','icon-med','icon-sleep'];
+let msgTimer=null;
+
+function save(){
+  gs.savedAt=Date.now();
+  try{localStorage.setItem('tama',JSON.stringify(gs));}catch(e){}
+}
+function load(){
+  try{
+    const raw=localStorage.getItem('tama');
+    if(!raw)return;
+    const saved=JSON.parse(raw);
+    // Simulate time passed while away (max 2 hours)
+    if(saved.savedAt&&!saved.dead){
+      const elapsed=Math.min((Date.now()-saved.savedAt)/1000,7200);
+      const ticks=Math.floor(elapsed/0.8);
+      if(!saved.sleeping){
+        const hungerLoss=Math.floor(ticks*8/20);
+        const happyLoss=Math.floor(ticks*5/20);
+        saved.hunger=Math.max(0,saved.hunger-hungerLoss);
+        saved.happy=Math.max(0,saved.happy-happyLoss);
+        if(saved.hunger<20||saved.happy<20)saved.health=Math.max(0,saved.health-Math.floor(ticks*3/20));
+        if(saved.health<=0)saved.dead=true;
+        if(saved.health<30&&!saved.sick)saved.sick=true;
+        if(Math.random()<0.3&&!saved.poop&&saved.phase!=='egg')saved.poop=true;
+      }
+    }
+    gs=Object.assign({},DEFAULT,saved);
+  }catch(e){}
+}
+
+function setMsg(txt,dur=1500){
+  document.getElementById('msg').textContent=txt;
+  if(msgTimer)clearTimeout(msgTimer);
+  if(dur>0)msgTimer=setTimeout(()=>{document.getElementById('msg').textContent='';},dur);
+}
+function updateBars(){
+  document.getElementById('bar-hunger').style.width=gs.hunger+'%';
+  document.getElementById('bar-happy').style.width=gs.happy+'%';
+  document.getElementById('bar-health').style.width=gs.health+'%';
+  document.getElementById('age-disp').textContent='AGE: '+gs.age;
+}
+function updateIcons(){
+  ICONS.forEach((id,i)=>document.getElementById(id).classList.toggle('on',gs.inMenu&&gs.menu===i));
+}
+function notify(txt){
+  const el=document.getElementById('notify');
+  el.textContent=txt;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ── Game Loop ──
+function tick(){
+  animAlt=!animAlt;
+  gs.tick++;
+  if(gs.dead){render();return;}
+  if(gs.phase==='egg'&&gs.tick>12){gs.phase='baby';setMsg('HATCH!',2000);seq([[523,.1],[784,.1],[1047,.2]]);}
+  if(gs.phase==='baby'&&gs.age>=3)gs.phase='adult';
+  if(!gs.sleeping){
+    if(gs.tick%20===0){
+      gs.hunger=Math.max(0,gs.hunger-8);
+      gs.happy=Math.max(0,gs.happy-5);
+      if(gs.hunger<20||gs.happy<20)gs.health=Math.max(0,gs.health-3);
+      if(Math.random()<0.12&&!gs.poop&&gs.phase!=='egg'){gs.poop=true;setMsg('!',0);sndAlert();notify('Питомец нуждается в уборке!');}
+      if(gs.health<30&&!gs.sick){gs.sick=true;sndSick();notify('Питомец заболел! Дай лекарство!');}
+      if(gs.hunger<30&&!gs.dead){notify('Питомец голодает!');}
+      if(gs.health<=0){gs.dead=true;sndDead();setMsg('...',0);notify('Питомец умер... Нажми B для новой игры');}
+      updateBars();
+    }
+    if(gs.tick%75===0){gs.age++;updateBars();}
+  }
+  render();
+  if(gs.tick%15===0)save();
+}
+setInterval(tick,800);
+
+// ── Buttons ──
+function btnPress(b){
+  sndClick();
+  const btn=document.getElementById('btn'+b);
+  btn.classList.add('pressed');setTimeout(()=>btn.classList.remove('pressed'),120);
+
+  if(gs.dead){if(b==='B'){resetGame();}return;}
+  if(b==='A'){
+    if(!gs.inMenu){gs.inMenu=true;gs.menu=0;}
+    else gs.menu=(gs.menu+1)%MENUS.length;
+    updateIcons();return;
+  }
+  if(b==='C'){gs.inMenu=false;updateIcons();return;}
+  if(b==='B'){
+    if(!gs.inMenu)return;
+    const act=MENUS[gs.menu];
+    gs.inMenu=false;updateIcons();
+    doAction(act);
+  }
+}
+['A','B','C'].forEach(id=>{
+  const el=document.getElementById('btn'+id);
+  el.addEventListener('click',()=>btnPress(id));
+  el.addEventListener('touchstart',e=>{e.preventDefault();btnPress(id);},{passive:false});
+});
+
+function doAction(act){
+  if(gs.phase==='egg'&&act!=='sleep')return;
+  switch(act){
+    case'food':
+      if(gs.sleeping){setMsg('ZZZ',1000);return;}
+      gs.hunger=Math.min(100,gs.hunger+30);setMsg('YUM!',1200);sndFeed();
+      animateSprite('eat');updateBars();break;
+    case'game':
+      if(gs.sleeping){setMsg('ZZZ',1000);return;}
+      gs.happy=Math.min(100,gs.happy+25);setMsg('YAY!',1200);sndGame();
+      animateSprite('happy');updateBars();break;
+    case'clean':
+      if(gs.poop){gs.poop=false;setMsg('CLEAN',1200);sndHappy();}
+      else setMsg('OK!',800);break;
+    case'med':
+      if(gs.sick){gs.sick=false;gs.health=Math.min(100,gs.health+30);setMsg('+HP',1200);sndHappy();}
+      else{gs.health=Math.min(100,gs.health+10);setMsg('+HP',800);}
+      updateBars();break;
+    case'sleep':
+      gs.sleeping=!gs.sleeping;
+      setMsg(gs.sleeping?'ZZZ...':'WAKE!',1200);
+      beep(gs.sleeping?220:440,.15);break;
+  }
+  save();
+}
+
+function animateSprite(sp){
+  let n=0;const id=setInterval(()=>{
+    cx.fillStyle=LIGHT;cx.fillRect(0,0,64,64);drawSp(sp);
+    if(++n>3)clearInterval(id);
+  },200);
+}
+
+function resetGame(){
+  gs=Object.assign({},DEFAULT);
+  save();setMsg('NEW GAME',1500);updateBars();updateIcons();
+  seq([[523,.1],[659,.1],[784,.15]]);
+}
+
+// ── Init ──
+load();render();updateBars();updateIcons();
+setMsg(gs.dead?'PRESS B':gs.tick>0?'WELCOME BACK!':'PRESS A',2000);
+if(gs.tick>0&&!gs.dead)notify('Питомец соскучился!');
+
+// ── Service Worker ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
