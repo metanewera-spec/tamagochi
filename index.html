@@ -97,6 +97,41 @@
       pointer-events:none;z-index:100;white-space:nowrap;
     }
     .notify.show{opacity:1;}
+
+    .help-btn{
+      position:absolute;bottom:10px;right:12px;
+      width:22px;height:22px;border-radius:50%;
+      background:#906000;border:2px solid #7a5000;
+      color:#e8c84a;font-size:10px;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;user-select:none;
+      box-shadow:0 2px 0 #5a3800;
+      z-index:10;
+    }
+    .help-btn:active{transform:translateY(2px);box-shadow:none;}
+
+    .help-overlay{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,0.85);z-index:200;
+      align-items:center;justify-content:center;
+      padding:20px;
+    }
+    .help-overlay.show{display:flex;}
+    .help-box{
+      background:#1a1a2e;border:2px solid #d4a820;border-radius:12px;
+      padding:20px;max-width:320px;width:100%;
+      font-size:7px;color:#e8c84a;line-height:2.2;
+    }
+    .help-box h2{font-size:9px;color:#fff;margin-bottom:12px;text-align:center;}
+    .help-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+    .help-icon{color:#d4a820;min-width:14px;}
+    .help-close{
+      display:block;margin:16px auto 0;
+      background:#d4a820;color:#1a1a2e;
+      border:none;border-radius:6px;padding:8px 20px;
+      font-family:'Press Start 2P',monospace;font-size:7px;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body>
@@ -132,6 +167,26 @@
   </div>
 </div>
 <div class="notify" id="notify"></div>
+
+<div class="help-btn" onclick="document.getElementById('helpOverlay').classList.add('show')">?</div>
+
+<div class="help-overlay" id="helpOverlay">
+  <div class="help-box">
+    <h2>КАК ИГРАТЬ</h2>
+    <div class="help-row"><span class="help-icon">A</span><span>SELECT — листать меню (иконки вверху)</span></div>
+    <div class="help-row"><span class="help-icon">B</span><span>OK — выбрать действие</span></div>
+    <div class="help-row"><span class="help-icon">C</span><span>CANCEL — закрыть меню</span></div>
+    <div style="margin:10px 0;border-top:1px solid #d4a82055;"></div>
+    <div class="help-row"><span class="help-icon">♦</span><span>FOOD — покормить питомца (растёт HGR)</span></div>
+    <div class="help-row"><span class="help-icon">◆</span><span>GAME — поиграть (растёт HPI)</span></div>
+    <div class="help-row"><span class="help-icon">■</span><span>CLEAN — убрать за питомцем (когда появляется !)</span></div>
+    <div class="help-row"><span class="help-icon">▲</span><span>MED — дать лекарство (когда болеет)</span></div>
+    <div class="help-row"><span class="help-icon">▼</span><span>SLEEP — уложить спать / разбудить</span></div>
+    <div style="margin:10px 0;border-top:1px solid #d4a82055;"></div>
+    <div class="help-row"><span class="help-icon">!</span><span>Если питомец умер — нажми B для новой игры</span></div>
+    <button class="help-close" onclick="document.getElementById('helpOverlay').classList.remove('show')">ПОНЯТНО</button>
+  </div>
+</div>
 
 <script>
 // ── Audio ──
